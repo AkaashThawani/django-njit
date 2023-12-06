@@ -39,7 +39,7 @@ def add_location(request):
         from_location_data = data.get('from_location', {})
         to_location_data = data.get('to_location', {})
         travel_mode = data.get('travel_mode')
-        search_by = data.get('search_by')
+        search_by = data.get('search_by') or ''
 
         from_location_name = from_location_data.get('name')
         from_location_lat = from_location_data.get('lat')

@@ -34,7 +34,8 @@ class SearchLocation(models.Model):
     to_location_lng = models.FloatField()
     timestamp = models.DateTimeField(auto_now_add=True)
     travel_mode = models.CharField(max_length=10, choices=TRAVEL_MODE_CHOICES)
-    search_by = models.ForeignKey(User, on_delete=models.CASCADE,blank=True,null=True,)  
+    search_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True, null=True, default="NULL")
 
     def __str__(self):
         return f"{self.from_location_name} to {self.to_location_name} at {self.timestamp}"
@@ -75,7 +76,7 @@ class Building(models.Model):
 
 class Feedback(models.Model):
     user_name = models.CharField(max_length=100)
-    comment = models.TextField()
+    comment = models.TextField(max_length=1000)
     admin_comment = models.TextField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
