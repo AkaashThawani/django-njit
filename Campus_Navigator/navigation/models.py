@@ -42,11 +42,16 @@ class SearchLocation(models.Model):
 
 class CampusEvent(models.Model):
     campus_name = models.CharField(max_length=100)
+    event_id = models.AutoField(primary_key=True)
     event_name = models.CharField(max_length=200)
     event_description = models.TextField()
-    # Adjust the upload_to path as needed
     event_image = models.ImageField(upload_to='event_images/')
-    event_timestamp = models.DateTimeField(auto_now_add=True)
+    start_time = models.DateTimeField(blank=False)
+    end_time = models.DateTimeField(blank=False)
+    organizers_name = models.CharField(max_length=100)
+    event_type = models.CharField(max_length=50)
+    location = models.CharField(max_length=200)  
+
     slug = models.SlugField(unique=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -55,7 +60,7 @@ class CampusEvent(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.event_name} at {self.campus_name} on {self.event_timestamp}"
+        return f"{self.event_name} at {self.campus_name} ({self.start_time} to {self.end_time})"
 
 
 class Building(models.Model):
