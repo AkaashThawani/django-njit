@@ -70,13 +70,14 @@ class Building(models.Model):
 
 
 class Feedback(models.Model):
-    user_name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    email = models.CharField(max_length=100)
     comment = models.TextField(max_length=1000)
     admin_comment = models.TextField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user_name}'s Feedback"
+        return f"{self.name}'s Feedback"
 
 
 class CustomUserManager(BaseUserManager):

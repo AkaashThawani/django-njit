@@ -2,6 +2,7 @@ import json
 from navigation.forms import LocationForm
 from .models import Location, SearchLocation
 from django.http import JsonResponse
+from django.core.serializers import serialize
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -23,10 +24,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 @csrf_exempt
 def get_locations(request):
-    locations = Location.objects.all()
-    data = [{'from_location': location.from_location, 'to_location': location.to_location,
-             'timestamp': location.timestamp} for location in locations]
-    return JsonResponse(data, safe=False)
+    locations = SearchLocation.objects.all()
+    # print(locations)
+    serialize_data = serialize("json",locations)
+    serialize_data = json.loads(serialize_data)
+    return JsonResponse(serialize_data, safe=False)
 
 
 @csrf_exempt
@@ -127,7 +129,24 @@ def get_feedback(request):
     feedback_list = Feedback.objects.all()
     data = [{'user_name': feedback.user_name, 'comment': feedback.comment,
              'timestamp': feedback.timestamp} for feedback in feedback_list]
-    return JsonResponse(data, safe=False)
+    return JsonResponse({'data':data,'status':'success'}, safe=False,)
+
+@csrf_exempt
+def save_feedback(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data['email']
+        name = data['name']
+        comment = data['comments']
+        print(data)
+        if email is not None and name is not None and comment is not None: 
+            newfeedback = Feedback(email=email, name=name, comment=comment)
+            newfeedback.save()
+            return JsonResponse({'message': 'Feedback saved successfully', 'status': 'success'}, status=200)
+        else:
+            return JsonResponse({'message': 'Unable to save feedback', 'status': 'fail'}, status=200)
+    else:
+        return JsonResponse({'message': 'Unable to save feedback', 'status': 'fail'}, status=400)
 
 
 @csrf_exempt
