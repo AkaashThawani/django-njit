@@ -8,6 +8,7 @@ urlpatterns = [
     path('api/get_campus_events', views.CampusEventApiView.as_view(),
          name='get_campus_events'),
     path('api/get_buildings', views.get_buildings, name='get_buildings'),
+    path('api/get_image', views.get_image, name='get_image'),
     path('api/add_building', views.add_building, name='add_building'),
     path('api/get_feedback', views.get_buildings, name='get_buildings'),
     path('api/get_feedback_byID', views.add_building, name='add_building'),

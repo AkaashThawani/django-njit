@@ -1,7 +1,12 @@
 import json
+import base64
+import mimetypes
+import os
+
+from django.conf import settings
 from navigation.forms import LocationForm
 from .models import Location, SearchLocation
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.core.serializers import serialize
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -26,7 +31,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 def get_locations(request):
     locations = SearchLocation.objects.all()
     # print(locations)
-    serialize_data = serialize("json",locations)
+    serialize_data = serialize("json", locations)
     serialize_data = json.loads(serialize_data)
     return JsonResponse(serialize_data, safe=False)
 
@@ -78,10 +83,13 @@ def add_location(request):
 class CampusEventApiView(View):
     def get(self, request, *args, **kwargs):
         events = CampusEvent.objects.all()
-        event_list = [{'id': event.id, 'campus_name': event.campus_name, 'event_name': event.event_name,
+        print(events)
+        event_list = [{'campus_name': event.campus_name, 'event_name': event.event_name,
+                       'event_org_name': event.organizers_name,'event_location':event.location,
+                       'event_type':event.event_type,
                        'event_description': event.event_description, 'event_image': event.event_image.url,
-                       'event_timestamp': event.event_timestamp, 'slug': event.slug} for event in events]
-        return JsonResponse({'events': event_list}, safe=False)
+                       'event_start_time': event.start_time,'event_end_time': event.end_time, 'slug': event.slug} for event in events]
+        return JsonResponse(event_list, safe=False)
 
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
@@ -99,9 +107,35 @@ class CampusEventApiView(View):
 @csrf_exempt
 def get_buildings(request):
     buildings = Building.objects.all()
-    data = [{'build_name': building.build_name, 'build_img': building.build_img.url,
-             'build_description': building.build_description} for building in buildings]
+    data = [
+        {
+            'build_name': building.build_name,
+            'build_img_url': building.build_img.url,  # URL to the image
+            'build_description': building.build_description
+        }
+        for building in buildings
+    ]
     return JsonResponse(data, safe=False)
+
+
+@csrf_exempt
+def get_image(request):
+    if request.method == 'POST':
+        image_filename = json.loads(request.body)['image_filename']
+        print("image_file", image_filename)
+        image_path = os.path.join(
+            settings.BASE_DIR, image_filename)
+        print("IMAGE PATH-", image_path)
+
+        with open(image_path, 'rb') as image_file:
+            image_data = image_file.read()
+
+        # Adjust based on your image types (JPEG, PNG, etc.)
+        content_type = 'image/jpeg'
+
+        response = HttpResponse(image_data, content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{image_filename}"'
+        return response
 
 
 @csrf_exempt
@@ -129,7 +163,8 @@ def get_feedback(request):
     feedback_list = Feedback.objects.all()
     data = [{'user_name': feedback.user_name, 'comment': feedback.comment,
              'timestamp': feedback.timestamp} for feedback in feedback_list]
-    return JsonResponse({'data':data,'status':'success'}, safe=False,)
+    return JsonResponse({'data': data, 'status': 'success'}, safe=False,)
+
 
 @csrf_exempt
 def save_feedback(request):
@@ -139,7 +174,7 @@ def save_feedback(request):
         name = data['name']
         comment = data['comments']
         print(data)
-        if email is not None and name is not None and comment is not None: 
+        if email is not None and name is not None and comment is not None:
             newfeedback = Feedback(email=email, name=name, comment=comment)
             newfeedback.save()
             return JsonResponse({'message': 'Feedback saved successfully', 'status': 'success'}, status=200)
